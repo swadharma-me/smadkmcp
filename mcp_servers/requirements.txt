@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+fastmcp
+httpx
+requests
+pydantic
+pydantic-settings
+openai
+litellm
+psycopg2-binary
+sqlalchemy
+indic-transliteration
+python-dotenv

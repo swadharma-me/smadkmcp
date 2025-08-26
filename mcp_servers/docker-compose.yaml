@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mcpsanatana:
+    container_name: mcpsanatana
+    image: mcpsanatana:latest
+    ports:
+      - "8002:8000"
+    environment:
+      PYTHONPATH: /app
+      PODADMIN_EMAIL: "devpodadmin@smaraami.com"
+      PODADMIN_PASSWORD: "Abcd1@34"
+      LOGFIRE_TOKEN: 'pylf_v1_us_tSB9VssGvVnQd1hYlpHzW2fPbTKkGRBQHr4gPRFdhcQ1'
+      LOGFIRE_HOST: 'https://api.logfire.dev'
+      LOGFIRE_CONSOLE_MIN_LOG_LEVEL: 'DEBUG'
+      POSTHOG_HOST: 'https://us.i.posthog.com'
+      POSTHOG_APIKEY: 'phc_KourjgDlfrmMVyHQK1rdJ2kDWI41VlZs7JY7eMwn41x'
+      BYPASS_TOKEN: "abcdefgh123456789"
+      LLM_PROVIDER: "azure"
+      AZURE_OPENAI_ENDPOINT: "https://aditya1974-1364-resource.services.ai.azure.com/"
+      AZURE_OPENAI_API_VERSION: "2025-04-01-preview"
+      AZURE_REASONING_MODEL: 'gpt-4.1-mini'
+      AZURE_SUMMARIZING_MODEL: 'gpt-4.1-mini'
+      AZURE_PLANNER_MODEL: 'gpt-4.1-mini'
+      AZURE_OPENAI_KEY: "xGEaSNcVx3RgsiGA4XguIXcQJMmD0PNoPEejUBp1jgfZdTkOkIufJQQJ99BGACHYHv6XJ3w3AAAAACOG0ExG"
+      OPENAI_API_KEY: "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"
+      OPENAI_REASONING_MODEL: 'gpt-4.1-mini'
+      OPENAI_SUMMARIZING_MODEL: 'gpt-4.1-mini'
+      OPENAI_PLANNER_MODEL: 'gpt-4.1-mini'
+      EMBEDDING_MODEL_NAME: "text-embedding-3-large"
+      DB_HOST: "host.docker.internal"
+      DB_PORT: 5432
+      DB_NAME: "sanatana"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres995"
+      DB_SCHEMA: "dharma"
+      DB_MIN_CONNECTIONS: 1
+      DB_MAX_CONNECTIONS: 10
+      DB_CONNECT_TIMEOUT: 30
