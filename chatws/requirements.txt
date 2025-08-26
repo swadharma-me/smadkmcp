@@ -1,0 +1,15 @@
+# Core web framework and server
+fastapi
+uvicorn
+
+
+# HTTP clients
+httpx
+requests
+
+# Data validation and models
+pydantic
+
+
+# Firebase integration
+firebase-admin

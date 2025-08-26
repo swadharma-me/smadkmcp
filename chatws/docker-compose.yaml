@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  wschat:
+    container_name: wschat
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./credentials/firebase_credentials.json:/app/credentials/firebase_credentials.json:ro
+    environment:
+      PYTHONPATH: /app
+      PODADMIN_EMAIL: "devpodadmin@smaraami.com"
+      PODADMIN_PASSWORD: "Abcd1@34"
+      LOGFIRE_TOKEN: 'pylf_v1_us_tSB9VssGvVnQd1hYlpHzW2fPbTKkGRBQHr4gPRFdhcQ1'
+      LOGFIRE_HOST: 'https://api.logfire.dev'
+      LOGFIRE_CONSOLE_MIN_LOG_LEVEL: 'DEBUG'
+      POSTHOG_HOST: 'https://us.i.posthog.com'
+      POSTHOG_APIKEY: 'phc_KourjgDlfrmMVyHQK1rdJ2kDWI41VlZs7JY7eMwn41x'
+      BYPASS_TOKEN: "abcdefgh123456789"
+      FIREBASE_SERVICE_CREDENTIALS: "/app/credentials/firebase_credentials.json"
+      FIREBASE_API_KEY: "AIzaSyAPO5FbHwxwKuTvJINZkyJAEDvukHuxNwM"
+      FIREBASE_AUTH_DOMAIN: "smaraami-dev.firebaseapp.com"
+      FIREBASE_AUTH_URL: "https://devfbauth.smaraami.com/extract_user"
+      GOOGLE_ADK_API_URL: "http://localhost:8001"
