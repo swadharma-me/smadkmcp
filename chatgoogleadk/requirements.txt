@@ -1,0 +1,23 @@
+# Core web framework and server
+fastapi
+uvicorn
+
+# MCP (Model Context Protocol) server
+fastmcp
+
+# HTTP clients
+httpx
+requests
+
+# Data validation and models
+pydantic
+
+# OpenAI integration
+openai
+
+# Google ADK (Agent Development Kit) - pin to specific version for compatibility
+google-adk==1.5.0
+
+# Standard library packages (these come with Python, but listing for clarity)
+# json, logging, os, asyncio, typing are built-in
+litellm

@@ -1,0 +1,3 @@
+# export OPENAI_API_KEY=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
+export ADK_AGENT_LOAD_STRATEGY=python
+adk web --port 8001 --host 0.0.0.0
