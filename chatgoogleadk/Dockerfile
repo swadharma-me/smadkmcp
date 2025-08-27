@@ -3,7 +3,7 @@
 # FROM asia-south1-docker.pkg.dev/smartifacts-446410/smdocker/smfastapi
 # FROM python:3.13
 
-FROM asia-south1-docker.pkg.dev/smartifacts-446410/smdocker/smfastapi\
+FROM asia-south1-docker.pkg.dev/smartifacts-446410/smdocker/smfastapi
 
 COPY requirements.txt /requirements.txt
 
