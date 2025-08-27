@@ -1,15 +1,13 @@
 # Core web framework and server
 fastapi
 uvicorn
-
-
 # HTTP clients
 httpx
 requests
-
 # Data validation and models
 pydantic
-
-
+pydantic_settings
 # Firebase integration
 firebase-admin
+openai
+logging

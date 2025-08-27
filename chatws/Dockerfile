@@ -1,8 +1,7 @@
 # Base image
 # FROM python:3.9-slim
-# FROM asia-south1-docker.pkg.dev/smartifacts-446410/smdocker/smfastapi
-FROM python:3.11-slim
-
+# FROM python:3.11-slim
+FROM asia-south1-docker.pkg.dev/smartifacts-446410/smdocker/smfastapi
 WORKDIR /app
 
 # Copy requirements file and install dependencies

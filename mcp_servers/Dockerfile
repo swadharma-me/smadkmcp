@@ -1,7 +1,8 @@
 # Base image
 # FROM python:3.9-slim
 # FROM asia-south1-docker.pkg.dev/smartifacts-446410/smdocker/smfastapi
-FROM python:3.11
+# FROM python:3.11
+FROM asia-south1-docker.pkg.dev/smartifacts-446410/smdocker/smfastapi
 
 WORKDIR /app
 
