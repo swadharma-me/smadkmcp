@@ -10,4 +10,3 @@ pydantic_settings
 # Firebase integration
 firebase-admin
 openai
-logging
