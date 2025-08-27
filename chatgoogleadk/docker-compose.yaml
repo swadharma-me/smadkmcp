@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   chatgoogleadk:
-    image: chatgoogleadk
+    image: googleadk
     ports:
       - "8001:8000"
     environment:

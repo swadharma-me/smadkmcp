@@ -1,5 +1,5 @@
 # Define the Docker image name
-export DOCKER_NAME=googlechat
+export DOCKER_NAME=googleadk
 docker build -t $DOCKER_NAME:1.0 .
 
 # Base location for your Docker registry
