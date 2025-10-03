@@ -61,7 +61,7 @@ def fetch_utsav_records(sloka_index: str = None):
         "Granularity: metadata • Content: scriptures catalog with canonical index prefixes • Intent: list all scriptures "
         "and their canonical prefix metadata used to build canonical sloka indices.\n"
         "- Use this before forming canonical sloka indices.\n"
-        "- Example: Gita 2.47 canonical index is KRISHNA_BG_02_47 (prefix + chapter/sloka zero-padded).\n"
+        "- Example: Gita 2.47 canonical index is KRISHNA_BG_02_47 (prefix + chapter/sloka zero-padded). see for example start_sloka_index KRISHNA_BG_01_01 and end_sloka_index KRISHNA_BG_18_78 to get an understanding of how the prefix works\n"
         "- Returns per-scripture prefix metadata (e.g., 'KRISHNA_BG') and related fields."
     )
 )
