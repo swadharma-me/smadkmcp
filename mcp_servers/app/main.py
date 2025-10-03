@@ -55,7 +55,16 @@ def fetch_utsav_records(sloka_index: str = None):
     return results
 
 
-@mcp_server.tool(description="Granularity: corpus list • Content: scripture metadata (prefix, range) • Intent: discover valid scripture_name & sloka_index formats before other tools.")
+@mcp_server.tool(
+    name="list_scriptures",
+    description=(
+        "Granularity: metadata • Content: scriptures catalog with canonical index prefixes • Intent: list all scriptures "
+        "and their canonical prefix metadata used to build canonical sloka indices.\n"
+        "- Use this before forming canonical sloka indices.\n"
+        "- Example: Gita 2.47 canonical index is KRISHNA_BG_02_47 (prefix + chapter/sloka zero-padded).\n"
+        "- Returns per-scripture prefix metadata (e.g., 'KRISHNA_BG') and related fields."
+    )
+)
 def list_all_scriptures():
     logger.info("list_all_scriptures called")
     results = pgutils.list_all_scriptures()
@@ -66,7 +75,11 @@ def list_all_scriptures():
 
 @mcp_server.tool(
     name="get_sloka_meaning",
-    description="Granularity: Sloka • Content: full meaning/sanskrit english combination of explanation/speakers/triplets • Intent: retrieve authoritative details for a known sloka_index. Note: verses mean slokas, commentaries usually mean bhashyas. Sanskrit version of the bhashyas are usually stored in input_sloka field.",
+    description=(
+        "Granularity: sloka • Content: full meaning and metadata • Intent: fetch meaning for a specific sloka.\n"
+        "- Accepts sloka_index as 'chapter.sloka' with scripture_name (e.g., 2.47 + 'gita'), OR canonical index (e.g., KRISHNA_BG_02_47).\n"
+        "- Use list_scriptures to retrieve canonical prefixes per scripture."
+    )
 )
 def get_sloka_meaning(sloka_index: str, scripture_name: str = None):
     logger.info(f"get_sloka_meaning called sloka_index={sloka_index} scripture_name={scripture_name}")
@@ -156,7 +169,11 @@ def next_sloka_details(sloka_index: str = None, scripture_name: str = None, numb
 
 @mcp_server.tool(
     name="surrounding_context",
-    description="Granularity: local passage (prev+current+next) • Content: LLM summary of contiguous slokas • Intent: narrative framing for a target Sloka."
+    description=(
+        "Granularity: local passage • Content: previous/current/next slokas • Intent: immediate context window.\n"
+        "- Accepts 'chapter.sloka' + scripture_name OR canonical index (e.g., KRISHNA_BG_02_47).\n"
+        "- Use list_scriptures for canonical prefix lookup."
+    )
 )
 def immediate_surrounding_context(sloka_index: str, scripture_name: str):
     """Return summary of immediate context (previous/current/next slokas) using trace_immediate_context.
@@ -282,6 +299,29 @@ def get_chapter_context(sloka_index: str, scripture_name: str):
     except Exception as e:
         logger.error(f"get_chapter_context failed: {e}")
         return []
+
+@mcp_server.tool(
+    name="enquire_dharmic_concepts",
+    description=(
+        "Granularity: concept enquiry • Content: enriched dharmic concept embeddings (+ stored diagnosis JSON when present) • "
+        "Intent: route non-lookup, reasoning/exploration questions about dharmic concepts.\n"
+        "- Use when the user asks 'what is X', 'why/how does X work', 'difference between X and Y', 'guidance/practice for X', or general conceptual enquiries.\n"
+        "- Returns top‑N concept rows (with scores) to be used as reasoning context by your agent (e.g., DharmaDiagnosisAgent)."
+    )
+)
+
+def search_dharmic_concepts(text: str, top_n: int = 3):
+    """
+    Lookup enriched dharmic concepts using semantic search over dharma.dharmic_enriched_concepts.
+    Delegates to pgutils.search_enriched_dharma_concepts.
+    """
+    logger.info(f"search_dharmic_concepts called text='{(text or '')[:60]}...' top_n={top_n}")
+    results = pgutils.search_enriched_dharma_concepts(text, top_n=top_n)
+    _log_output("search_dharmic_concepts", results)
+    return results
+
+
+
 
 def run_server():
     """Run the MCP server (SSE) using optional environment overrides.

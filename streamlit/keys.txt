@@ -1,0 +1,5 @@
+# --- CONFIGURATION VARIABLES ---
+FIREBASE_API_KEY = "AIzaSyAPO5FbHwxwKuTvJINZkyJAEDvukHuxNwM"
+FIREBASE_AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + FIREBASE_API_KEY
+WEBSOCKET_CHAT_URL = "wss://devsmwschat.smaraami.com/chat/{sessionId}"
+##

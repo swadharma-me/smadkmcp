@@ -41,7 +41,7 @@ def get_bhashya_references(sloka_index: str, scripture_name: str | None) -> list
         if base == 'yogasutras':
             q = """
                 SELECT yogasutras_bhashya_sloka_index AS sloka_index, scripture_name
-                FROM dharma.yogasutras_bhashya
+                FROM dharma.yogasutras_bhashyas
                 WHERE sloka_index = %s
                 LIMIT 1
             """
@@ -115,7 +115,7 @@ def get_yogasutras_sloka_index_given_yogasutras_bhashya_sloka_index(yogasutras_b
         Optional[str]: The corresponding Yogasutras sloka index if found, else None.
     """
     query = """
-        SELECT sloka_index FROM dharma.yogasutras_bhashya
+        SELECT sloka_index FROM dharma.yogasutras_bhashyas
         WHERE yogasutras_bhashya_sloka_index = %s AND scripture_name = %s
         LIMIT 1;
     """
@@ -138,7 +138,7 @@ def get_yogasutras_bhashya_sloka_index_given_yogasutras_sloka_index(yogasutras_s
         Optional[str]: The corresponding Yogasutras Bhashya sloka index if found, else None.
     """
     query = """
-        SELECT yogasutras_bhashya_sloka_index FROM dharma.yogasutras_bhashya
+        SELECT yogasutras_bhashya_sloka_index FROM dharma.yogasutras_bhashyas
         WHERE sloka_index = %s AND scripture_name = %s
         LIMIT 1;
     """
@@ -1066,4 +1066,89 @@ def search_bhagavatham_glossary_embeddings_top_n(text, top_n=1, scripture_name="
         return output_matches
     except Exception as e:
         logger.error(f"Failed to search bhagavatham glossary embeddings: {e}")
+        return []
+
+def search_enriched_dharma_concepts(text, top_n=3):
+    """
+    Semantic search over dharma.dharmic_enriched_concepts using pgvector cosine similarity.
+
+    Args:
+        text (str): Query text to embed and search against the table embedding column.
+        top_n (int): Number of top matches to return (capped by MAX_RESULTS_LIMIT).
+
+    Returns:
+        list[dict]: Each dict includes selected columns and a similarity 'score' (0..1).
+    """
+    try:
+        if not text or not str(text).strip():
+            return []
+        # Enforce maximum results limit
+        top_n = min(top_n, MAX_RESULTS_LIMIT)
+
+        # Build embedding for the input query
+        query_embedding = get_embeddings(text)
+        emb_str = str(query_embedding.tolist()) if hasattr(query_embedding, 'tolist') else str(query_embedding)
+
+        # Use cosine similarity via pgvector: 1 - (embedding <#> query_embedding)
+        query = f"""
+            SELECT
+                id,
+                concept_name,
+                secular_one_liner,
+                dharmic_one_liner,
+                expanded_sanskrit_glossary,
+                expanded_references,
+                expanded_sadhana,
+                detailed_commentary,
+                key_insights_gita_yogasutras,
+                connected_examples_from_itihasas,
+                contemplative_questions,
+                tags,
+                refs,
+                sadhana,
+                sanskrit_glossary,
+                commentary,
+                content_type,
+                (1 - (embedding <#> '{emb_str}')) AS score
+            FROM dharma.dharmic_enriched_concepts
+            WHERE content_type = 'dharmic_concept'
+            ORDER BY score DESC
+            LIMIT {top_n};
+        """
+
+        logger.info(
+            f"Searching dharmic_enriched_concepts (top_n={top_n}) "
+            f"query_emb_sample={emb_str[:64]}..."
+        )
+
+        rows = execute_query(query, fetch='all') or []
+        results = []
+        for r in rows:
+            # Keep payload lean but useful; include score for ranking transparency
+            results.append({
+                "id": r.get("id"),
+                "concept_name": r.get("concept_name"),
+                "secular_one_liner": r.get("secular_one_liner"),
+                "dharmic_one_liner": r.get("dharmic_one_liner"),
+                "expanded_sanskrit_glossary": r.get("expanded_sanskrit_glossary"),
+                "expanded_references": r.get("expanded_references"),
+                "expanded_sadhana": r.get("expanded_sadhana"),
+                "detailed_commentary": r.get("detailed_commentary"),
+                "key_insights_gita_yogasutras": r.get("key_insights_gita_yogasutras"),
+                "connected_examples_from_itihasas": r.get("connected_examples_from_itihasas"),
+                "contemplative_questions": r.get("contemplative_questions"),
+                "tags": r.get("tags"),
+                "refs": r.get("refs"),
+                "sadhana": r.get("sadhana"),
+                "sanskrit_glossary": r.get("sanskrit_glossary"),
+                "commentary": r.get("commentary"),
+                "content_type": r.get("content_type"),
+                "score": r.get("score"),
+            })
+
+        logger.info(f"Found {len(results)} enriched dharmic concepts")
+        return results
+
+    except Exception as e:
+        logger.error(f"Failed to search enriched dharmic concepts: {e}")
         return []
