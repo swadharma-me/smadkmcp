@@ -98,7 +98,18 @@ def list_all_scriptures_alias():
 )
 def get_sloka_meaning(sloka_index: str, scripture_name: str = None):
     logger.info(f"get_sloka_meaning called sloka_index={sloka_index} scripture_name={scripture_name}")
-    results = pgutils.get_sloka_meanings(sloka_index, scripture_name)
+    # Support 'chapter.sloka' by canonicalizing when scripture_name is provided
+    lookup_index = sloka_index
+    try:
+        if scripture_name and isinstance(sloka_index, str) and "." in sloka_index:
+            canon_res = canonicalize_sloka_index(scripture_name, sloka_index)
+            if isinstance(canon_res, dict) and canon_res.get("success"):
+                lookup_index = canon_res.get("canonical_sloka_index", sloka_index)
+                logger.info(f"Canonicalized {sloka_index} -> {lookup_index}")
+    except Exception as e:
+        logger.warning(f"get_sloka_meaning canonicalization failed, proceeding with original index: {e}")
+
+    results = pgutils.get_sloka_meanings(lookup_index, scripture_name)
     _log_output("get_sloka_meaning", results)
     return results
 
@@ -170,14 +181,14 @@ def rerank_slokas(agent_en_sloka_list: Optional[List[dict]] = None,
 @mcp_server.tool(description="Granularity: window (N previous) • Content: prior Sloka texts • Intent: supply immediate lead-in context.")
 def previous_sloka_details(sloka_index: str = None, scripture_name: str = None, number_before: int = 5):
     logger.info(f"previous_sloka_details called sloka_index={sloka_index} scripture_name={scripture_name} number_before={number_before}")
-    results = pgutils.get_slokas_before_current_sloka(sloka_index, scripture_name, number_before=5)
+    results = pgutils.get_slokas_before_current_sloka(sloka_index, scripture_name, number_before=number_before)
     _log_output("previous_sloka_details", results)
     return results
 
 @mcp_server.tool(description="Granularity: window (N next) • Content: following Sloka texts • Intent: supply immediate continuation context.")
 def next_sloka_details(sloka_index: str = None, scripture_name: str = None, number_after: int = 5):
     logger.info(f"next_sloka_details called sloka_index={sloka_index} scripture_name={scripture_name} number_after={number_after}")
-    results = pgutils.get_slokas_after_current_sloka(sloka_index, scripture_name, number_after=5)
+    results = pgutils.get_slokas_after_current_sloka(sloka_index, scripture_name, number_after=number_after)
     _log_output("next_sloka_details", results)
     return results
 
@@ -355,7 +366,6 @@ def get_chapter_context(sloka_index: str, scripture_name: str):
         "- Returns top‑N concept rows (with scores) to be used as reasoning context by your agent (e.g., DharmaDiagnosisAgent)."
     )
 )
-
 def enquire_dharmic_concepts(text: str, top_n: int = 3):
     """
     Lookup enriched dharmic concepts using semantic search over dharma.dharmic_enriched_concepts.

@@ -343,12 +343,32 @@ def fetch_utsav_records(sloka_index=None):
 # Fetch all records from scriptures as a list of Scriptures objects
 
 def list_all_scriptures():
+    """
+    Fetch scriptures metadata. Return raw dict rows instead of Pydantic models to be
+    resilient to schema drifts (e.g., optional columns like target_table_name).
+
+    Expected columns (when present):
+      - scripture_name, author, description, summary, publication_year,
+        language, genre, start_sloka_index, end_sloka_index, target_table_name
+    """
     query = f"SELECT * FROM dharma.scriptures LIMIT {MAX_RESULTS_LIMIT}"
     try:
-        results = execute_query(query, fetch='all')
-        scriptures_list = [Scriptures(**row) for row in results]
-        logger.debug(f"Fetched Scriptures records: {scriptures_list}")
-        return scriptures_list
+        results = execute_query(query, fetch='all') or []
+        # Ensure we always return a list of plain dicts
+        normalized = []
+        for row in results:
+            try:
+                # Some callers expect start/end_sloka_index to infer canonical prefix
+                normalized.append({
+                    **row,
+                    # keep keys as-is; add explicit None defaults for optional fields when missing
+                    'target_table_name': row.get('target_table_name'),
+                })
+            except Exception:
+                # Fallback: include row as-is
+                normalized.append(row)
+        logger.debug(f"Fetched Scriptures records: {len(normalized)} rows")
+        return normalized
     except Exception as e:
         logger.error(f"Failed to fetch scriptures records: {e}")
         return []
