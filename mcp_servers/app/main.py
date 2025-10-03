@@ -71,6 +71,21 @@ def list_all_scriptures():
     _log_output("list_all_scriptures", results)
     return results
 
+# Backward-compatible alias so agents referring to 'list_all_scriptures' (older prompt wording) still work
+@mcp_server.tool(
+    name="list_all_scriptures",
+    description=(
+        "Granularity: metadata • Content: scriptures catalog with canonical index prefixes • Intent: list all scriptures "
+        "and their canonical prefix metadata used to build canonical sloka indices.\n"
+        "- Example: Gita 2.47 canonical index is KRISHNA_BG_02_47 (prefix + chapter/sloka zero-padded)."
+    )
+)
+def list_all_scriptures_alias():
+    logger.info("list_all_scriptures (alias) called")
+    results = pgutils.list_all_scriptures()
+    _log_output("list_all_scriptures_alias", results)
+    return results
+
 
 
 @mcp_server.tool(
@@ -221,6 +236,37 @@ def get_current_datetime():
 
 
 @mcp_server.tool(
+    name="transliterate_sanskrit_text",
+    description=(
+        "Granularity: transliteration • Content: Devanagari → target Indic script • "
+        "Intent: convert a Sanskrit sloka from Devanagari to the requested script.\n"
+        "- Params: sloka_text (Devanagari), target_script (e.g., telugu, tamil, kannada, malayalam, gujarati, gurmukhi, bengali, oriya, iast, itrans, hk, slp1).\n"
+        "- Use get_supported_transliteration_scripts to discover valid target_script values."
+    )
+)
+def transliterate_sanskrit_text(sloka_text: str, target_script: str = "telugu"):
+    logger.info(
+        f"transliterate_sanskrit_text called target_script={target_script} text_snip='{(sloka_text or '')[:32]}...'"
+    )
+    result = misctools.transliterate_sloka(sloka_text, target_script=target_script)
+    _log_output("transliterate_sanskrit_text", result)
+    return result
+
+
+@mcp_server.tool(
+    name="get_supported_transliteration_scripts",
+    description=(
+        "Granularity: metadata • Content: supported transliteration targets • Intent: discover valid target_script values for transliterate_sanskrit_text."
+    )
+)
+def get_supported_transliteration_scripts():
+    logger.info("get_supported_transliteration_scripts called")
+    scripts = misctools.get_supported_scripts()
+    _log_output("get_supported_transliteration_scripts", scripts)
+    return scripts
+
+
+@mcp_server.tool(
     name="search_ramayana_sarga_summaries",
     description="Granularity: chapter • Content: Ramayana narrative/thematic summary embeddings • Intent: macro context (no sloka_index). Uses scripture_name parameter for 'ramayana'."
 )
@@ -310,15 +356,61 @@ def get_chapter_context(sloka_index: str, scripture_name: str):
     )
 )
 
-def search_dharmic_concepts(text: str, top_n: int = 3):
+def enquire_dharmic_concepts(text: str, top_n: int = 3):
     """
     Lookup enriched dharmic concepts using semantic search over dharma.dharmic_enriched_concepts.
     Delegates to pgutils.search_enriched_dharma_concepts.
     """
-    logger.info(f"search_dharmic_concepts called text='{(text or '')[:60]}...' top_n={top_n}")
+    logger.info(f"enquire_dharmic_concepts called text='{(text or '')[:60]}...' top_n={top_n}")
     results = pgutils.search_enriched_dharma_concepts(text, top_n=top_n)
-    _log_output("search_dharmic_concepts", results)
+    _log_output("enquire_dharmic_concepts", results)
     return results
+
+
+@mcp_server.tool(
+    name="canonicalize_sloka_index",
+    description=(
+        "Granularity: utility • Content: canonical sloka index builder • Intent: build canonical index from scripture_name + 'chapter.sloka'.\n"
+        "- Example: scripture_name='gita', sloka_index='2.47' → KRISHNA_BG_02_47.\n"
+        "- Uses prefixes from list_scriptures (e.g., start_sloka_index like KRISHNA_BG_01_01)."
+    )
+)
+def canonicalize_sloka_index(scripture_name: str, sloka_index: str) -> dict:
+    """Return canonical index using scripture metadata. Expects sloka_index like 'chapter.sloka'."""
+    logger.info(f"canonicalize_sloka_index called scripture_name={scripture_name} sloka_index={sloka_index}")
+    try:
+        if not scripture_name or not sloka_index or "." not in sloka_index:
+            return {"success": False, "error": "Provide scripture_name and sloka_index like '2.47'"}
+        chap_str, sloka_str = [p.strip() for p in sloka_index.split(".", 1)]
+        # Pad to 2 digits by default (covers Gita and most), adjust if needed later
+        try:
+            ch_num = int(chap_str)
+            sl_num = int(sloka_str)
+        except Exception:
+            return {"success": False, "error": "sloka_index must be 'chapter.sloka' with integers"}
+
+        rows = pgutils.list_all_scriptures() or []
+        meta = None
+        name_lower = scripture_name.lower()
+        for r in rows:
+            sn = (r.get("scripture_name") or "").lower()
+            if sn == name_lower:
+                meta = r
+                break
+        if not meta:
+            return {"success": False, "error": f"scripture_name '{scripture_name}' not found in list_scriptures"}
+
+        start_idx = meta.get("start_sloka_index") or meta.get("canonical_start") or ""
+        if not start_idx or start_idx.count("_") < 2:
+            return {"success": False, "error": "Scripture metadata lacks canonical start index to infer prefix"}
+        prefix = "_".join(start_idx.split("_")[:-2])
+        canonical = f"{prefix}_{ch_num:02d}_{sl_num:02d}"
+        result = {"success": True, "canonical_sloka_index": canonical, "scripture_name": scripture_name}
+        _log_output("canonicalize_sloka_index", result)
+        return result
+    except Exception as e:
+        logger.error(f"canonicalize_sloka_index failed: {e}")
+        return {"success": False, "error": str(e)}
 
 
 
