@@ -196,7 +196,7 @@ def ws_worker(ws_url: str, auth_header: str, incoming: queue.Queue, outgoing: qu
         time.sleep(WS_RECONNECT_BACKOFF_SEC)
 
 # ======================= UI =======================
-st.title("Streamlit WebSocket Chat")
+st.title("Dharma Chat")
 _apply_clear_if_requested()
 
 # Toggle debug rail
