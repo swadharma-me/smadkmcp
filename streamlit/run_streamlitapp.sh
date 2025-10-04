@@ -1,1 +1,1 @@
-streamlit run ./chat_app.py
+streamlit run ./app/main.py

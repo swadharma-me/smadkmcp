@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  streamlitapp:
+    container_name: streamlitapp
+    image: streamlitapp:latest
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      PYTHONPATH: /app
+    env_file:
+      - ./app/dev.env

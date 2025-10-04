@@ -5,6 +5,7 @@ import threading
 import json
 import queue
 import time
+from config import config
 
 # ======================= Page & Layout =======================
 st.set_page_config(page_title="WS Chat", layout="wide")
@@ -32,9 +33,14 @@ def safe_rerun():
     return None
 
 # --- CONFIGURATION VARIABLES ---
-FIREBASE_API_KEY = "AIzaSyAPO5FbHwxwKuTvJINZkyJAEDvukHuxNwM"
-FIREBASE_AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + FIREBASE_API_KEY
-WEBSOCKET_CHAT_URL = "wss://devsmwschat.smaraami.com/chat/{sessionId}"
+# Read from env via pydantic settings
+FIREBASE_API_KEY = config.FIREBASE_API_KEY
+WEBSOCKET_CHAT_URL = config.WEBSOCKET_CHAT_URL
+# Build Firebase auth URL in code (concat requested)
+FIREBASE_AUTH_URL = (
+    "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="
+    + (FIREBASE_API_KEY or "")
+)
 ##
 
 # Keep the connection alive ~10 minutes idle (send a ping every 9 minutes)
